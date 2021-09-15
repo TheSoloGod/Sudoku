@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, TouchableOpacity, SafeAreaView, Dimensions, ScrollView, TextInput, FlatList} from 'react-native';
+import { View, Text, TouchableOpacity, SafeAreaView, Dimensions, ScrollView, TextInput, FlatList } from "react-native";
 import axios from 'axios';
 import * as API from '../config/Api';
 
@@ -11,6 +11,7 @@ export default function HomeScreen() {
     const [board_draft, setBoardDraft] = useState(board_reset);
     const [board_resolved, setBoardResolved] = useState([]);
     const numbers_pad = [1,2,3,4,5,6,7,8,9];
+    const [selected, setSelected] = useState('')
 
     useEffect(() => {
         axios.get(API.GET_RANDOM_BOARD('easy'))
@@ -21,6 +22,20 @@ export default function HomeScreen() {
                 setBoardDraft(board_data.board);
             })
     }, []);
+    const arrayClone = (arr) =>  {
+        var i, copy;
+      if( Array.isArray( arr ) ) {
+        copy = arr.slice( 0 );
+        for( i = 0; i < copy.length; i++ ) {
+          copy[ i ] = arrayClone( copy[ i ] );
+        }
+        return copy;
+      } else if( typeof arr === 'object' ) {
+        throw 'Cannot clone array containing an object!';
+      } else {
+        return arr;
+      }
+    }
 
     useEffect(() => {
         if (board_origin) {
@@ -38,176 +53,56 @@ export default function HomeScreen() {
         Object.keys(params)
             .map(key => key + '=' + `%5B${encodeBoard(params[key])}%5D`)
             .join('&');
+  const renderItem = ({item, index}) => {
+    let group_index = index;
+    return(
+      <View style={{
+        borderColor: 'black',
+        borderWidth: 1
+      }}>
+        <FlatList data={item} renderItem={({item, index}) => rendercell(item, index, group_index)} horizontal={true}/>
+      </View>
+    )
+  }
+  const rendercell = (item, index, group) => {
+    return(
+      <View>
+        {
+          item === board[group][index] && item !== 0
+            ?
 
-    const renderBoard = (board) => {
-        return (
             <View style={{
-                borderColor: 'black',
-                borderWidth: 2
+              width: WIDTH * 0.9 / 9,
+              height: WIDTH * 0.9 / 9,
+              borderColor: 'black',
+              borderWidth: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'cyan',
             }}>
-                <View style={{
-                    flexDirection: 'row',
-                }}>
-                    <View>
-                        {renderGroup(board[0], 0)}
-                    </View>
-                    <View>
-                        {renderGroup(board[1], 1)}
-                    </View>
-                    <View>
-                        {renderGroup(board[2], 2)}
-                    </View>
-                </View>
-                <View style={{
-                    flexDirection: 'row',
-                }}>
-                    <View>
-                        {renderGroup(board[3], 3)}
-                    </View>
-                    <View>
-                        {renderGroup(board[4], 4)}
-                    </View>
-                    <View>
-                        {renderGroup(board[5], 5)}
-                    </View>
-                </View>
-                <View style={{
-                    flexDirection: 'row',
-                }}>
-                    <View>
-                        {renderGroup(board[6], 6)}
-                    </View>
-                    <View>
-                        {renderGroup(board[7], 7)}
-                    </View>
-                    <View>
-                        {renderGroup(board[8], 8)}
-                    </View>
-                </View>
+              <Text>
+                {item + ' ' + board_draft[group][index]}
+
+              </Text>
             </View>
-        );
-    };
-
-    const renderGroup = (group, index_group) => {
-        return (
-            <View style={{
-                borderColor: 'black',
-                borderWidth: 1
-            }}>
-                <View style={{
-                    flexDirection: 'row',
-                }}>
-                    <View>
-                        {renderCell(group[0], index_group, 0)}
-                    </View>
-                    <View>
-                        {renderCell(group[1], index_group, 1)}
-                    </View>
-                    <View>
-                        {renderCell(group[2], index_group, 2)}
-                    </View>
-                </View>
-                <View style={{
-                    flexDirection: 'row',
-                }}>
-                    <View>
-                        {renderCell(group[3], index_group, 3)}
-                    </View>
-                    <View>
-                        {renderCell(group[4], index_group, 4)}
-                    </View>
-                    <View>
-                        {renderCell(group[5], index_group, 5)}
-                    </View>
-                </View>
-                <View style={{
-                    flexDirection: 'row',
-                }}>
-                    <View>
-                        {renderCell(group[6], index_group, 6)}
-                    </View>
-                    <View>
-                        {renderCell(group[7], index_group, 7)}
-                    </View>
-                    <View>
-                        {renderCell(group[8], index_group, 8)}
-                    </View>
-                </View>
-            </View>
-        );
-    };
-
-    const renderCell = (cell, index_group, index_cell) => {
-        return (
-            <View>
-                {
-                    cell == 0
-                    ?
-                        <View style={{
-                            width: WIDTH * 0.9 / 9,
-                            height: WIDTH * 0.9 / 9,
-                            borderColor: 'black',
-                            borderWidth: 1,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            backgroundColor: board[index_group][index_cell] == 0 ? 'white' : 'gray',
-                        }}>
-                            <TextInput
-                                style={{
-                                    padding: 0,
-                                }}
-                                defaultValue={board[index_group][index_cell].toString()}
-                                textAlign={'center'}
-                                maxLength={1}
-                                keyboardType={'number-pad'}
-                                onChangeText={text => {
-                                    let board_clone = [...board];
-                                    board_clone[index_group][index_cell] = text;
-                                    setBoard(board_clone);
-                                }}
-                            />
-                        </View>
-                        :
-                        <View style={{
-                            width: WIDTH * 0.9 / 9,
-                            height: WIDTH * 0.9 / 9,
-                            borderColor: 'black',
-                            borderWidth: 1,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            backgroundColor: 'cyan',
-                        }}>
-                            <Text>
-                                {cell}
-                            </Text>
-                        </View>
-                }
-            </View>
-        );
-    };
-
-    const renderNumbersPad = ({item}) => {
-        return (
-            <TouchableOpacity
-                style={{
-                    width: WIDTH * 0.9 / 9,
-                    height: WIDTH * 0.9 / 9,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: '#dedede',
-                    borderColor: 'black',
-                    borderWidth: 1
-                }}
-                onPress={() => {
-
-                }}
-            >
-                <Text>
-                    {item}
-                </Text>
+            :
+            <TouchableOpacity style={{
+              width: WIDTH * 0.9 / 9,
+              height: WIDTH * 0.9 / 9,
+              borderColor: 'black',
+              borderWidth: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: `${group}-${index}` === selected ? 'red' : 'white',
+            }}
+                              onPress={()=> {
+                                setSelected(`${group}-${index}`)
+                              }}>
             </TouchableOpacity>
-        );
-    };
+        }
+      </View>
+    )
+  }
 
     return (
         <SafeAreaView>
@@ -215,19 +110,38 @@ export default function HomeScreen() {
                     alignItems: 'center',
                     marginVertical: 20
                 }}>
-                    {renderBoard(board)}
+                    {/*{renderBoard(board)}*/}
+                    <FlatList data={board_draft} renderItem={renderItem} />
+                    <TouchableOpacity onPress={() => {
+                        let draft_clone = arrayClone(board_draft)
+                        let x = selected.split('-')[0];
+                        let y = selected.split('-')[1];
+                        draft_clone[x][y] = 8;
+                        console.log(board);
+                        console.log(board_draft);
+                        console.log(draft_clone);
+                        setBoardDraft(draft_clone);
+                        // setBoard(draft_clone)
+                        // console.log(board);
+                        // console.log(board_draft);
+                    }}>
+                        <Text>
+                            0
+                        </Text>
+                    </TouchableOpacity>
                 </View>
-            <View style={{
-                width: WIDTH,
-                alignItems: 'center',
-            }}>
-                <FlatList
-                    data={numbers_pad}
-                    renderItem={renderNumbersPad}
-                    ItemSeparatorComponent={() => {return (<View style={{width: WIDTH * 0.01}}/>)}}
-                    horizontal={true}
-                />
-            </View>
+          <View style={{
+            width: WIDTH,
+            alignItems: 'center',
+          }}>
+            <FlatList
+              data={numbers_pad}
+              renderItem={renderNumbersPad}
+              ItemSeparatorComponent={() => {return (<View style={{width: WIDTH * 0.01}}/>)}}
+              horizontal={true}
+            />
+          </View>
         </SafeAreaView>
     );
+
 }

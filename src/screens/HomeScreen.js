@@ -12,7 +12,9 @@ export default function HomeScreen() {
     const [board_resolved, setBoardResolved] = useState([]);
     const numbers_pad = [1,2,3,4,5,6,7,8,9];
     const [selected, setSelected] = useState('')
-
+    const [wrongNums, SetWrongNum] = useState('')
+    let x =''
+    let y =''
     useEffect(() => {
         axios.get(API.GET_RANDOM_BOARD('easy'))
             .then(res => {
@@ -36,13 +38,18 @@ export default function HomeScreen() {
         return arr;
       }
     }
+    const getXY = () =>{
+       x = selected.split('-')[0];
+       y = selected.split('-')[1];
+    }
 
     useEffect(() => {
         if (board_origin) {
             let params_encode = encodeParams(board_origin);
             axios.post(API.SOLVE_BOARD, params_encode, {headers: {'Content-Type': 'application/x-www-form-urlencoded'}})
                 .then(res => {
-                    setBoardResolved(res.data.board);
+                    setBoardResolved(res.data.solution);
+                  console.log(res.data.solution);
                 })
         }
     }, [board_origin]);
@@ -58,77 +65,222 @@ export default function HomeScreen() {
     return(
       <View style={{
         borderColor: 'black',
-        borderWidth: 1
+        // borderWidth: 1
       }}>
         <FlatList data={item} renderItem={({item, index}) => rendercell(item, index, group_index)} horizontal={true}/>
       </View>
     )
   }
   const rendercell = (item, index, group) => {
-    return(
-      <View>
-        {
-          item === board[group][index] && item !== 0
-            ?
+    let borderBot = 0;
+    let borderRight = 0;
+    let borderLeft = 0;
+    let borderTop = 0;
+    if(group === 2 || group === 5 || group === 8 ){
+      borderBot = 4
+    }
+    if (index === 2 || index === 5 || index === 8){
+      borderRight = 4
+    }
+    // if (index === 0 || index === 3 || index === 7){
+    //   borderLeft = 4
+    // }
+    // if (group === 0){
+    //   borderTop = 4
+    // }
 
-            <View style={{
-              width: WIDTH * 0.9 / 9,
-              height: WIDTH * 0.9 / 9,
-              borderColor: 'black',
-              borderWidth: 1,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'cyan',
+    if(item === board[group][index] && item !== 0){
+      return(
+        <View style={{
+                    width: WIDTH * 0.9 / 9,
+                    height: WIDTH * 0.9 / 9,
+                    borderColor: 'black',
+                    borderBottomWidth: borderBot,
+                    borderRightWidth : borderRight,
+                    borderTopWidth: borderTop,
+                    borderLeftWidth: borderLeft,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'cyan',
+                  }}>
+                    <Text style={{
+                      fontWeight :"bold"
+                    }}>
+                      {item}
+                    </Text>
+        </View>
+      )
+    }
+    else if(item === 0){
+      return(
+      <TouchableOpacity style={{
+                  width: WIDTH * 0.9 / 9,
+                  height: WIDTH * 0.9 / 9,
+                  borderColor: 'black',
+                  // borderWidth: 1,
+                  borderBottomWidth: borderBot,
+                  borderRightWidth : borderRight,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: `${group}-${index}` === selected ? 'yellow' : 'white',
+                }}
+                                  onPress={()=> {
+                                    setSelected(`${group}-${index}`)
+                                  }}>
+                </TouchableOpacity>
+      )
+    }
+    else{
+      // if(wrongNums){
+        return(
+          <TouchableOpacity style={{
+            width: WIDTH * 0.9 / 9,
+            height: WIDTH * 0.9 / 9,
+            borderColor: 'black',
+            // borderWidth: 1,
+            borderRightWidth : borderRight,
+            borderBottomWidth: borderBot,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: `${group}-${index}` === selected ? 'yellow' : 'white',
+          }}
+                            onPress={()=> {
+                              setSelected(`${group}-${index}`)
+                            }}
+          >
+            <Text style={{
+              fontWeight: "bold",
+              color: `${group}-${index}` === wrongNums ? 'red': 'black'
             }}>
-              <Text>
-                {item + ' ' + board_draft[group][index]}
+              {item}
+            </Text>
+          </TouchableOpacity>
+        )
+      // }
+      // else{
+      //   return(
+      //     <TouchableOpacity style={{
+      //       width: WIDTH * 0.9 / 9,
+      //       height: WIDTH * 0.9 / 9,
+      //       borderColor: 'black',
+      //       borderWidth: 1,
+      //       alignItems: 'center',
+      //       justifyContent: 'center',
+      //       backgroundColor: `${group}-${index}` === selected ? 'green' : 'white',
+      //     }}
+      //                       onPress={()=> {
+      //                         setSelected(`${group}-${index}`)
+      //                       }}
+      //     >
+      //       <Text>
+      //         {item}
+      //       </Text>
+      //     </TouchableOpacity>
+      //   )
+      // }
 
-              </Text>
-            </View>
-            :
-            <TouchableOpacity style={{
-              width: WIDTH * 0.9 / 9,
-              height: WIDTH * 0.9 / 9,
-              borderColor: 'black',
-              borderWidth: 1,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: `${group}-${index}` === selected ? 'red' : 'white',
-            }}
-                              onPress={()=> {
-                                setSelected(`${group}-${index}`)
-                              }}>
-            </TouchableOpacity>
-        }
-      </View>
-    )
+    }
+    // return(
+    //   <View>
+    //     {
+    //
+    //         ?
+    //
+    //         <View style={{
+    //           width: WIDTH * 0.9 / 9,
+    //           height: WIDTH * 0.9 / 9,
+    //           borderColor: 'black',
+    //           borderWidth: 1,
+    //           alignItems: 'center',
+    //           justifyContent: 'center',
+    //           backgroundColor: 'cyan',
+    //         }}>
+    //           <Text>
+    //             {item + ' ' + board_draft[group][index]}
+    //
+    //           </Text>
+    //         </View>
+    //         : item === 0 ?
+    //         <TouchableOpacity style={{
+    //           width: WIDTH * 0.9 / 9,
+    //           height: WIDTH * 0.9 / 9,
+    //           borderColor: 'black',
+    //           borderWidth: 1,
+    //           alignItems: 'center',
+    //           justifyContent: 'center',
+    //           backgroundColor: `${group}-${index}` === selected ? 'red' : 'white',
+    //         }}
+    //                           onPress={()=> {
+    //                             setSelected(`${group}-${index}`)
+    //                           }}>
+    //         </TouchableOpacity>
+    //         :
+    //         <TouchableOpacity style={{
+    //           width: WIDTH * 0.9 / 9,
+    //           height: WIDTH * 0.9 / 9,
+    //           borderColor: 'black',
+    //           borderWidth: 1,
+    //           alignItems: 'center',
+    //           justifyContent: 'center',
+    //           backgroundColor: `${group}-${index}` === selected ? 'red' : 'white',
+    //         }}
+    //                           onPress={()=> {
+    //                             setSelected(`${group}-${index}`)
+    //                           }}
+    //         >
+    //           <Text>
+    //             {item}
+    //           </Text>
+    //         </TouchableOpacity>
+    //     }
+    //   </View>
+    // )
   }
+  const renderNumbersPad = ({item}) => {
+    return (
+      <TouchableOpacity
+        style={{
+          width: WIDTH * 0.9 / 9,
+          height: WIDTH * 0.9 / 9,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#dedede',
+          borderColor: 'black',
+          borderWidth: 1
+        }}
+        onPress={() => {
+          let draft_clone = arrayClone(board_draft)
+          getXY()
+          draft_clone[x][y] = item;
+          console.log(board);
+          console.log(board_draft);
+          console.log(draft_clone);
+          setBoardDraft(draft_clone);
+          console.log(board_resolved);
+          if(draft_clone[x][y] !== board_resolved[x][y]){
+            SetWrongNum(`${x}-${y}`)
+          }
+          else {
+            SetWrongNum('')
+          }
+        }}
+      >
+        <Text>
+          {item}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
     return (
-        <SafeAreaView>
+        <SafeAreaView >
                 <View style={{
+                  width: WIDTH,
                     alignItems: 'center',
-                    marginVertical: 20
+                    borderWidth: 4,
                 }}>
                     {/*{renderBoard(board)}*/}
-                    <FlatList data={board_draft} renderItem={renderItem} />
-                    <TouchableOpacity onPress={() => {
-                        let draft_clone = arrayClone(board_draft)
-                        let x = selected.split('-')[0];
-                        let y = selected.split('-')[1];
-                        draft_clone[x][y] = 8;
-                        console.log(board);
-                        console.log(board_draft);
-                        console.log(draft_clone);
-                        setBoardDraft(draft_clone);
-                        // setBoard(draft_clone)
-                        // console.log(board);
-                        // console.log(board_draft);
-                    }}>
-                        <Text>
-                            0
-                        </Text>
-                    </TouchableOpacity>
+                    <FlatList data={board_draft} renderItem={renderItem} keyExtractor={(item, index) => index + "id" } />
                 </View>
           <View style={{
             width: WIDTH,
